@@ -1,0 +1,17 @@
+﻿  Camera.cpp
+C:\Users\auric\Documents\VS\Project1\Project1\Camera.cpp(42,19): warning C4305: '-=': truncation from 'double' to 'float'
+C:\Users\auric\Documents\VS\Project1\Project1\Camera.cpp(45,19): warning C4305: '+=': truncation from 'double' to 'float'
+C:\Users\auric\Documents\VS\Project1\Project1\Camera.cpp(63,36): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\auric\Documents\VS\Project1\Project1\Camera.cpp(63,25): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  main.cpp
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.40.33807\include\numbers(11): warning STL4038: The contents of <numbers> are available only with C++20 or later.
+  Shape.cpp
+C:\Users\auric\Documents\VS\Project1\Project1\Shape.cpp(105,46): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+  stb.cpp
+  Texture.cpp
+  glad.c
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 631 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  Project1.vcxproj -> C:\Users\auric\Documents\VS\Project1\x64\Release\Project1.exe
