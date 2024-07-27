@@ -9,7 +9,4 @@ Command:
 
 ![image](https://github.com/user-attachments/assets/e9cd649a-b5d3-481a-a0d6-a8981d797af2)
 
-•	Torso	: P * V * M¬¬¬Torso
-•	L1/R1	: P * V * M¬¬¬Torso * ML1 or P * V * M¬¬¬Torso * MR1
-•	L2/R2	: P * V * M¬¬¬Torso * ML1 * ML2 or P * V * M¬¬¬Torso * MR1 * MR2
 
