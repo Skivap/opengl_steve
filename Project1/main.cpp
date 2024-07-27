@@ -35,12 +35,14 @@ const char* vertexShaderSource =
 	"uniform mat4 rotation;\n"
 	"uniform mat4 scale;\n"
 
+	"uniform mat4 inner_rotation;\n"
+
 	"uniform vec4 offset;\n"
 	"uniform vec4 offset_rotation_location;\n"
 
 	"void main()\n"
 	"{\n"
-	"   gl_Position = view * (rotation * (scale * vec4(aPos, 1.0) + offset_rotation_location) + offset);\n"
+	"   gl_Position = view * (rotation * (scale * inner_rotation * vec4(aPos, 1.0) + offset_rotation_location) + offset);\n"
 	"   FragPos = vec3(view * vec4(aPos, 1.0));\n"
 	"   TexCoord = aUV;\n"
 	"   Normal = mat3(transpose(inverse(view))) * aNormal;\n"
@@ -72,6 +74,7 @@ GLint offset_location;
 GLint view_location;
 GLint offset_rotation_location;
 GLint rotation_location;
+GLint inner_rotation_location;
 GLint texture_location;
 GLint scale_location;
 
@@ -89,23 +92,22 @@ int main()
 	Shape Head("obj/cube_head.obj");
 	Shape LongCube("obj/cube_long.obj");
 	Shape Body("obj/cube_body.obj");
+	
+	Shape Cube("obj/Cube.obj");
 
 	// Camera
 	Camera camera(800, 800);
 
 	// Texture
-	const char * textrure_lava_path = "texture/lava.png";
-	const char* texture_stone_path = "texture/stone2.png";
-
 	const char* texture_head_path = "texture/head.png";
 	const char* texture_left_leg_path = "texture/left_leg.png";
 	const char* texture_right_leg_path = "texture/right_leg.png";
 	const char* texture_left_arm_path = "texture/left_arm.png";
 	const char* texture_right_arm_path = "texture/right_arm.png";
 	const char* texture_body_path = "texture/body.png";
-
-	Texture lava(textrure_lava_path);
-	Texture stone(texture_stone_path);
+	const char* texture_boots_path = "texture/boots.png";
+	const char* texture_cobble_path = "texture/cobble.png";
+	const char* texture_torch_path = "texture/torch.png";
 
 	Texture head(texture_head_path);
 	Texture left_leg(texture_left_leg_path);
@@ -113,9 +115,14 @@ int main()
 	Texture left_arm(texture_left_arm_path);
 	Texture right_arm(texture_right_arm_path);
 	Texture body(texture_body_path);
+	Texture boots(texture_boots_path);
+
+	Texture cobble(texture_cobble_path);
+	Texture torch(texture_torch_path);
 
 	// Rotation
 	glm::mat4 rotationMatrix;
+	glm::mat4 innerRotationMatrix;
 	// Scale
 	glm::mat4 scaleMatrix;
 
@@ -134,7 +141,6 @@ int main()
 		glUseProgram(shaderProgram);
 
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-			std::cout << "Pressed" << std::endl;
 			shouldUpdate = false;
 		}
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
@@ -157,10 +163,13 @@ int main()
 		camera.input(window);
 		camera.update(view_location);
 
+		innerRotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
 		// Render - Left Leg
 		left_leg.render();
 		rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(leg_angle-45), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(rotation_location, 1, GL_FALSE, glm::value_ptr(rotationMatrix));
+		glUniformMatrix4fv(inner_rotation_location, 1, GL_FALSE, glm::value_ptr(innerRotationMatrix));
 		glUniform4f(offset_location, -0.5f, -1.5f, 0.0f, 0.0f);
 		glUniform4f(offset_rotation_location, 0.0f, -1.5f, 0.0f, 0.0f);
 		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f));
@@ -171,9 +180,32 @@ int main()
 		right_leg.render();
 		rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(45- leg_angle), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(rotation_location, 1, GL_FALSE, glm::value_ptr(rotationMatrix));
+		glUniformMatrix4fv(inner_rotation_location, 1, GL_FALSE, glm::value_ptr(innerRotationMatrix));
 		glUniform4f(offset_location, 0.5f, -1.5f, 0.0f, 0.0f);
 		glUniform4f(offset_rotation_location, 0.0f, -1.5f, 0.0f, 0.0f);
 		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f));
+		glUniformMatrix4fv(scale_location, 1, GL_FALSE, glm::value_ptr(scaleMatrix));
+		LongCube.render();
+
+		// Render - Left shoe
+		boots.render();
+		rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(leg_angle - 45), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(rotation_location, 1, GL_FALSE, glm::value_ptr(rotationMatrix));
+		glUniformMatrix4fv(inner_rotation_location, 1, GL_FALSE, glm::value_ptr(innerRotationMatrix));
+		glUniform4f(offset_location, -0.5f, -1.5f, 0.0f, 0.0f);
+		glUniform4f(offset_rotation_location, 0.0f, -2.5f, 0.0f, 0.0f);
+		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.2f, 1.5f, 1.2f));
+		glUniformMatrix4fv(scale_location, 1, GL_FALSE, glm::value_ptr(scaleMatrix));
+		LongCube.render();
+
+		// Render - Right shoe
+		boots.render();
+		rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(45 - leg_angle), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(rotation_location, 1, GL_FALSE, glm::value_ptr(rotationMatrix));
+		glUniformMatrix4fv(inner_rotation_location, 1, GL_FALSE, glm::value_ptr(innerRotationMatrix));
+		glUniform4f(offset_location, 0.5f, -1.5f, 0.0f, 0.0f);
+		glUniform4f(offset_rotation_location, 0.0f, -2.5f, 0.0f, 0.0f);
+		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.2f, 1.5f, 1.2f));
 		glUniformMatrix4fv(scale_location, 1, GL_FALSE, glm::value_ptr(scaleMatrix));
 		LongCube.render();
 
@@ -181,41 +213,69 @@ int main()
 		body.render();
 		rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(rotation_location, 1, GL_FALSE, glm::value_ptr(rotationMatrix));
+		glUniformMatrix4fv(inner_rotation_location, 1, GL_FALSE, glm::value_ptr(innerRotationMatrix));
 		glUniform4f(offset_location, 0.0f, 0.0f, 0.0f, 0.0f);
 		glUniform4f(offset_rotation_location, 0.0f, 0.0f, 0.0f, 0.0f);
 		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 3.0f, 1.0f));
 		glUniformMatrix4fv(scale_location, 1, GL_FALSE, glm::value_ptr(scaleMatrix));
 		Body.render();
 
+		// Render - Head
+		head.render();
+		rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(rotation_location, 1, GL_FALSE, glm::value_ptr(rotationMatrix));
+		glUniformMatrix4fv(inner_rotation_location, 1, GL_FALSE, glm::value_ptr(innerRotationMatrix));
+		glUniform4f(offset_location, 0.0f, 2.5f, 0.0f, 0.0f);
+		glUniform4f(offset_rotation_location, 0.0f, 0.0f, 0.0f, 0.0f);
+		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f));
+		glUniformMatrix4fv(scale_location, 1, GL_FALSE, glm::value_ptr(scaleMatrix));
+		Head.render();
+
+		// Render - Left Arm
+		left_arm.render();
+		rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(leg_angle - 45), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(rotation_location, 1, GL_FALSE, glm::value_ptr(rotationMatrix));
+		glUniformMatrix4fv(inner_rotation_location, 1, GL_FALSE, glm::value_ptr(innerRotationMatrix));
+		glUniform4f(offset_location, 1.5f, 1.5f, 0.0f, 0.0f);
+		glUniform4f(offset_rotation_location, 0.0f, -1.5f, 0.0f, 0.0f);
+		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f));
+		glUniformMatrix4fv(scale_location, 1, GL_FALSE, glm::value_ptr(scaleMatrix));
+		LongCube.render();
+
 		// Render - Right Arm
 		right_arm.render();
 		rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(45 - leg_angle), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(rotation_location, 1, GL_FALSE, glm::value_ptr(rotationMatrix));
+		glUniformMatrix4fv(inner_rotation_location, 1, GL_FALSE, glm::value_ptr(innerRotationMatrix));
 		glUniform4f(offset_location, -1.5f, 0.5f, 0.0f, 0.0f);
 		glUniform4f(offset_rotation_location, 0.0f, -0.5f, 0.0f, 0.0f);
 		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f));
 		glUniformMatrix4fv(scale_location, 1, GL_FALSE, glm::value_ptr(scaleMatrix));
 		LongCube.render();
 
-		// Render - Left Arm
-		left_arm.render();
-		rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(leg_angle - 45), glm::vec3(1.0f, 0.0f, 0.0f));
+		// Render - Cube Item
+		cobble.render();
+		rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(45 - leg_angle), glm::vec3(1.0f, 0.0f, 0.0f));
+		innerRotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(rotation_location, 1, GL_FALSE, glm::value_ptr(rotationMatrix));
+		glUniformMatrix4fv(inner_rotation_location, 1, GL_FALSE, glm::value_ptr(innerRotationMatrix));
+		glUniform4f(offset_location, -1.5f, 0.5f, 0.0f, 0.0f);
+		glUniform4f(offset_rotation_location, 0.0f, -1.5f, 1.0f, 0.0f);
+		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
+		glUniformMatrix4fv(scale_location, 1, GL_FALSE, glm::value_ptr(scaleMatrix));
+		Cube.render();
+
+		// Render - Torch Item
+		torch.render();
+		rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(leg_angle-45), glm::vec3(1.0f, 0.0f, 0.0f));
+		innerRotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(rotation_location, 1, GL_FALSE, glm::value_ptr(rotationMatrix));
+		glUniformMatrix4fv(inner_rotation_location, 1, GL_FALSE, glm::value_ptr(innerRotationMatrix));
 		glUniform4f(offset_location, 1.5f, 1.5f, 0.0f, 0.0f);
-		glUniform4f(offset_rotation_location, 0.0f, -1.5f, 0.0f, 0.0f);
-		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f));
+		glUniform4f(offset_rotation_location, 0.0f, -2.75f, 1.0f, 0.0f);
+		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.25f, 1.25f));
 		glUniformMatrix4fv(scale_location, 1, GL_FALSE, glm::value_ptr(scaleMatrix));
 		LongCube.render();
-		
-		// Render - Head
-		head.render();
-		rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		glUniformMatrix4fv(rotation_location, 1, GL_FALSE, glm::value_ptr(rotationMatrix));
-		glUniform4f(offset_location, 0.0f, 2.5f, 0.0f, 0.0f);
-		glUniform4f(offset_rotation_location, 0.0f, 0.0f, 0.0f, 0.0f);
-		scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f));
-		glUniformMatrix4fv(scale_location, 1, GL_FALSE, glm::value_ptr(scaleMatrix));
-		Head.render();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -284,6 +344,7 @@ void init() {
 	rotation_location = glGetUniformLocation(shaderProgram, "rotation");
 	offset_rotation_location = glGetUniformLocation(shaderProgram, "offset_rotation_location");
 	scale_location = glGetUniformLocation(shaderProgram, "scale");
+	inner_rotation_location = glGetUniformLocation(shaderProgram, "inner_rotation");
 	texture_location = glGetUniformLocation(shaderProgram, "textureSampler");
 	glUniform1i(texture_location, 0);
 }
